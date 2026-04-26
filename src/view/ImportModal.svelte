@@ -6,24 +6,25 @@
     let { onCancel } = $props();
 
     interface VideoMetadata {
-        id: string;
         path: string;
         filename: string;
-
         width: number;
         height: number;
         fps: number;
         video_codec: string;
-
         format: string;
         size_bytes: number;
         duration_secs: number;
-
-        thumbnail_path?: string;
-        date_added: number;
     }
 
     let name = $state("");
+    let type = $state("");
+    let year = $state("");
+    let videoData = $state<VideoMetadata | null>(null);
+
+    let canSave = $derived(
+        name != "" && type != "" && year != "" && videoData != null,
+    );
 
     async function get_video_metadata() {
         try {
@@ -39,11 +40,13 @@
                 ],
             });
 
-            //let dataVideo = await invoke<string>("get_video_metadata");
+            videoData = await invoke<VideoMetadata>("get_video_metadata", {
+                path: pathVideo,
+            });
 
-            console.log("Respuesta de Rust:", pathVideo);
+            console.log("Respuesta de Rust:", videoData);
 
-            name = pathVideo === null ? "" : pathVideo;
+            name = videoData.filename;
         } catch (err) {
             console.error("Error al invocar Rust:", err);
         }
@@ -72,13 +75,28 @@
                 <label>Type</label>
                 <div class="radio-group">
                     <label class="radio-opt">
-                        <input type="radio" name="type" value="movie" /> Movie
+                        <input
+                            type="radio"
+                            name="type"
+                            value="movie"
+                            bind:group={type}
+                        /> Movie
                     </label>
                     <label class="radio-opt">
-                        <input type="radio" name="type" value="series" /> Series
+                        <input
+                            type="radio"
+                            name="type"
+                            value="series"
+                            bind:group={type}
+                        /> Series
                     </label>
                     <label class="radio-opt">
-                        <input type="radio" name="type" value="other" /> Other
+                        <input
+                            type="radio"
+                            name="type"
+                            value="other"
+                            bind:group={type}
+                        /> Other
                     </label>
                 </div>
             </div>
@@ -91,20 +109,21 @@
                     placeholder="2024"
                     min="1900"
                     max="2099"
+                    bind:value={year}
                 />
             </div>
 
             <div class="field">
                 <label>File</label>
-                <button class="file-btn" onclick={get_video_metadata}
-                    >Select file...</button
-                >
+                <button class="file-btn" onclick={get_video_metadata}>
+                    {videoData ? videoData.filename : "Select file..."}
+                </button>
             </div>
         </div>
 
         <div class="modal-footer">
             <button class="btn-cancel" onclick={onCancel}>Cancel</button>
-            <button class="btn-save" disabled>Save</button>
+            <button class="btn-save" disabled={!canSave}>Save</button>
         </div>
     </div>
 </div>
@@ -257,5 +276,10 @@
         color: #fff;
         cursor: pointer;
         opacity: 0.4;
+    }
+
+    .btn-save:not([disabled]) {
+        opacity: 1;
+        cursor: pointer;
     }
 </style>
