@@ -1,0 +1,261 @@
+<script lang="ts">
+    import { path } from "@tauri-apps/api";
+    import { invoke } from "@tauri-apps/api/core";
+    import * as fileDiaog from "@tauri-apps/plugin-dialog";
+
+    let { onCancel } = $props();
+
+    interface VideoMetadata {
+        id: string;
+        path: string;
+        filename: string;
+
+        width: number;
+        height: number;
+        fps: number;
+        video_codec: string;
+
+        format: string;
+        size_bytes: number;
+        duration_secs: number;
+
+        thumbnail_path?: string;
+        date_added: number;
+    }
+
+    let name = $state("");
+
+    async function get_video_metadata() {
+        try {
+            let pathVideo = await fileDiaog.open({
+                multiple: false,
+                directory: false,
+                title: "Select file",
+                filters: [
+                    {
+                        name: "videos",
+                        extensions: ["mp4", "mkv", "avi", "mov"],
+                    },
+                ],
+            });
+
+            //let dataVideo = await invoke<string>("get_video_metadata");
+
+            console.log("Respuesta de Rust:", pathVideo);
+
+            name = pathVideo === null ? "" : pathVideo;
+        } catch (err) {
+            console.error("Error al invocar Rust:", err);
+        }
+    }
+</script>
+
+<div class="overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Import video</h2>
+            <button class="close-btn" onclick={onCancel}>✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="field">
+                <label for="vname">Name</label>
+                <input
+                    id="vname"
+                    type="text"
+                    bind:value={name}
+                    placeholder="Video name..."
+                />
+            </div>
+
+            <div class="field">
+                <label>Type</label>
+                <div class="radio-group">
+                    <label class="radio-opt">
+                        <input type="radio" name="type" value="movie" /> Movie
+                    </label>
+                    <label class="radio-opt">
+                        <input type="radio" name="type" value="series" /> Series
+                    </label>
+                    <label class="radio-opt">
+                        <input type="radio" name="type" value="other" /> Other
+                    </label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="vyear">Year</label>
+                <input
+                    id="vyear"
+                    type="number"
+                    placeholder="2024"
+                    min="1900"
+                    max="2099"
+                />
+            </div>
+
+            <div class="field">
+                <label>File</label>
+                <button class="file-btn" onclick={get_video_metadata}
+                    >Select file...</button
+                >
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick={onCancel}>Cancel</button>
+            <button class="btn-save" disabled>Save</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+    }
+
+    .modal {
+        background: #fff;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 400px;
+        border: 0.5px solid #e0ddd6;
+    }
+
+    .modal-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 0.5px solid #e0ddd6;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-header h2 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        color: #aaa;
+        cursor: pointer;
+    }
+
+    .close-btn:hover {
+        color: #555;
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+        border: 0.5px solid #d0cdc6;
+        border-radius: 8px;
+        background: #fff;
+        color: #1a1a1a;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+
+    input:focus {
+        border-color: #e05a00;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .radio-opt {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        color: #555;
+        cursor: pointer;
+    }
+
+    .file-btn {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.8rem;
+        font-family: inherit;
+        background: #fff;
+        border: 0.5px solid #d0cdc6;
+        border-radius: 8px;
+        color: #555;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s;
+    }
+
+    .file-btn:hover {
+        background: #f5f5f3;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.25rem;
+        border-top: 0.5px solid #e0ddd6;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .btn-cancel {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        font-family: inherit;
+        background: #fff;
+        border: 0.5px solid #d0cdc6;
+        border-radius: 8px;
+        color: #555;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .btn-cancel:hover {
+        background: #f5f5f3;
+    }
+
+    .btn-save {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        font-family: inherit;
+        font-weight: 500;
+        background: #e05a00;
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        opacity: 0.4;
+    }
+</style>
