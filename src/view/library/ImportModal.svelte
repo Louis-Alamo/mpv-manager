@@ -1,21 +1,9 @@
 <script lang="ts">
-    import { path } from "@tauri-apps/api";
     import { invoke } from "@tauri-apps/api/core";
     import * as fileDiaog from "@tauri-apps/plugin-dialog";
+    import type { VideoMetadata } from "../../lib/types";
 
-    let { onCancel } = $props();
-
-    interface VideoMetadata {
-        path: string;
-        filename: string;
-        width: number;
-        height: number;
-        fps: number;
-        video_codec: string;
-        format: string;
-        size_bytes: number;
-        duration_secs: number;
-    }
+    let { onCancel, onSave } = $props();
 
     let name = $state("");
     let type = $state("");
@@ -26,7 +14,7 @@
         name != "" && type != "" && year != "" && videoData != null,
     );
 
-    async function get_video_metadata() {
+    async function getVideoMetadata() {
         try {
             let pathVideo = await fileDiaog.open({
                 multiple: false,
@@ -44,12 +32,15 @@
                 path: pathVideo,
             });
 
-            console.log("Respuesta de Rust:", videoData);
-
             name = videoData.filename;
         } catch (err) {
             console.error("Error al invocar Rust:", err);
         }
+    }
+
+    async function handleSave() {
+        if (!videoData) return;
+        await onSave(videoData, name, type, year);
     }
 </script>
 
@@ -115,7 +106,7 @@
 
             <div class="field">
                 <label>File</label>
-                <button class="file-btn" onclick={get_video_metadata}>
+                <button class="file-btn" onclick={getVideoMetadata}>
                     {videoData ? videoData.filename : "Select file..."}
                 </button>
             </div>
@@ -123,7 +114,9 @@
 
         <div class="modal-footer">
             <button class="btn-cancel" onclick={onCancel}>Cancel</button>
-            <button class="btn-save" disabled={!canSave}>Save</button>
+            <button class="btn-save" disabled={!canSave} onclick={handleSave}
+                >Save</button
+            >
         </div>
     </div>
 </div>

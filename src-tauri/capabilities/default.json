@@ -9,9 +9,6 @@
     "dialog:allow-message",
     "dialog:allow-open",
     "dialog:allow-save",
-    "dialog:allow-confirm",
-    "sql:allow-load",
-    "sql:allow-execute",
-    "sql:allow-select"
+    "dialog:allow-confirm"
   ]
 }

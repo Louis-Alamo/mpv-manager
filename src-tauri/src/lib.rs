@@ -1,10 +1,12 @@
-mod video_handler;
+use sqlx::SqlitePool;
+use tauri::Manager;
+
+mod video;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_sql::Builder::new().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -13,9 +15,45 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
+            let db_path = app.path().app_data_dir().unwrap().join("videos.db");
+            std::fs::create_dir_all(db_path.parent().unwrap()).unwrap();
+            let db_url = format!("sqlite:{}?mode=rwc", db_path.to_str().unwrap());
+
+            let pool = tauri::async_runtime::block_on(async {
+                let pool = SqlitePool::connect(&db_url).await.unwrap();
+
+                sqlx::query(
+                    "CREATE TABLE IF NOT EXISTS Videos (
+                        id INTEGER PRIMARY KEY,
+                        filename TEXT NOT NULL,
+                        path TEXT NOT NULL,
+                        width INTEGER,
+                        height INTEGER,
+                        fps REAL,
+                        video_codec TEXT,
+                        format TEXT,
+                        size_bytes INTEGER NOT NULL,
+                        duration_secs REAL NOT NULL,
+                        date_added INTEGER,
+                        type TEXT,
+                        year INTEGER
+                    )",
+                )
+                .execute(&pool)
+                .await
+                .expect("Failed to create Videos table");
+
+                pool
+            });
+
+            app.manage(pool);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![video_handler::get_video_metadata,])
+        .invoke_handler(tauri::generate_handler![
+            video::video_service::get_video_metadata,
+            video::video_repository::save_video
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

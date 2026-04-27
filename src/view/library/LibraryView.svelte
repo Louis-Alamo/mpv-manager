@@ -1,7 +1,9 @@
 <script lang="ts">
-    import girlsUndPanzerImg from "../assets/girls-und-panzer-portada.jpg";
-    import cyberpunkImg from "../assets/cyberpunk-edgerunners-portada.jpg";
+    import girlsUndPanzerImg from "../../assets/girls-und-panzer-portada.jpg";
+    import cyberpunkImg from "../../assets/cyberpunk-edgerunners-portada.jpg";
     import ImportModal from "./ImportModal.svelte";
+    import type { VideoMetadata } from "../../lib/types";
+    import { invoke } from "@tauri-apps/api/core";
 
     interface Video {
         name: string;
@@ -46,10 +48,25 @@
             return matchesName || matchesFormat || matchesPath;
         }),
     );
+
+    async function handleSave(
+        video: VideoMetadata,
+        name: string,
+        type: string,
+        year: string,
+    ) {
+        await invoke("save_video", {
+            video: $state.snapshot(video),
+            name,
+            type,
+            year: parseInt(year),
+        });
+        showModal = false;
+    }
 </script>
 
 {#if showModal}
-    <ImportModal onCancel={() => (showModal = false)} />
+    <ImportModal onCancel={() => (showModal = false)} onSave={handleSave} />
 {/if}
 
 <section class="collection">

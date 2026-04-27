@@ -1,17 +1,4 @@
-use serde::Serialize;
-
-#[derive(Serialize)]
-pub struct VideoMetadata {
-    path: String,
-    filename: String,
-    width: u32,
-    height: u32,
-    fps: f64,
-    video_codec: String,
-    format: String,
-    size_bytes: u64,
-    duration_secs: f64,
-}
+use crate::video::model::VideoMetadata;
 
 #[tauri::command]
 pub fn get_video_metadata(path: String) -> Result<VideoMetadata, String> {
