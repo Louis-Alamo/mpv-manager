@@ -2,7 +2,9 @@
     import girlsUndPanzerImg from "../../assets/girls-und-panzer-portada.jpg";
     import cyberpunkImg from "../../assets/cyberpunk-edgerunners-portada.jpg";
     import ImportModal from "./ImportModal.svelte";
+
     import type { VideoMetadata } from "../../lib/types";
+
     import { invoke } from "@tauri-apps/api/core";
 
     interface Video {
@@ -54,12 +56,14 @@
         name: string,
         type: string,
         year: string,
+        coverPath: string | null,
     ) {
         await invoke("save_video", {
             video: $state.snapshot(video),
             name,
             type,
             year: parseInt(year),
+            cover_path: coverPath,
         });
         showModal = false;
     }

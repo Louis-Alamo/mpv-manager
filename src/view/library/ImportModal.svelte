@@ -3,20 +3,33 @@
     import * as fileDiaog from "@tauri-apps/plugin-dialog";
     import type { VideoMetadata } from "../../lib/types";
 
-    let { onCancel, onSave } = $props();
+    let {
+        onCancel,
+        onSave,
+    }: {
+        onCancel: () => void;
+        onSave: (
+            video: VideoMetadata,
+            name: string,
+            type: string,
+            year: string,
+            coverPath: string | null,
+        ) => Promise<void>;
+    } = $props();
 
     let name = $state("");
     let type = $state("");
     let year = $state("");
     let videoData = $state<VideoMetadata | null>(null);
+    let pathImage = $state("");
 
     let canSave = $derived(
         name != "" && type != "" && year != "" && videoData != null,
     );
 
-    async function getVideoMetadata() {
+    async function getVideoMetadata(): Promise<void> {
         try {
-            let pathVideo = await fileDiaog.open({
+            let selected = await fileDiaog.open({
                 multiple: false,
                 directory: false,
                 title: "Select file",
@@ -28,8 +41,12 @@
                 ],
             });
 
+            if (!selected || Array.isArray(selected)) {
+                return;
+            }
+
             videoData = await invoke<VideoMetadata>("get_video_metadata", {
-                path: pathVideo,
+                path: selected,
             });
 
             name = videoData.filename;
@@ -38,9 +55,33 @@
         }
     }
 
-    async function handleSave() {
+    async function getPathImage(): Promise<void> {
+        try {
+            let selected = await fileDiaog.open({
+                multiple: false,
+                directory: false,
+                title: "Select imagen...",
+                filters: [
+                    {
+                        name: "images",
+                        extensions: ["jpg", "png"],
+                    },
+                ],
+            });
+
+            if (!selected || Array.isArray(selected)) {
+                return;
+            }
+
+            pathImage = selected;
+        } catch (err) {
+            console.log("ImportModal -> Error -> ", err);
+        }
+    }
+
+    async function handleSave(): Promise<void> {
         if (!videoData) return;
-        await onSave(videoData, name, type, year);
+        await onSave(videoData, name, type, year, pathImage || null);
     }
 </script>
 
@@ -102,6 +143,13 @@
                     max="2099"
                     bind:value={year}
                 />
+            </div>
+
+            <div class="field">
+                <label>Cover image</label>
+                <button class="file-btn" onclick={getPathImage}>
+                    {pathImage ? pathImage : "Select file..."}
+                </button>
             </div>
 
             <div class="field">

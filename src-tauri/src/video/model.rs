@@ -12,3 +12,13 @@ pub struct VideoMetadata {
     pub size_bytes: u64,
     pub duration_secs: f64,
 }
+
+#[derive(Serialize)]
+pub struct Video {
+    pub id: u32,
+    pub name: String,
+    pub path: String,
+    pub size_bytes: u64,
+    pub duration_secs: f64,
+    pub cover_path: Option<String>,
+}

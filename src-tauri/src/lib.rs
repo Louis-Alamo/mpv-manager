@@ -1,4 +1,4 @@
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tauri::Manager;
 
 mod video;
@@ -37,12 +37,40 @@ pub fn run() {
                         duration_secs REAL NOT NULL,
                         date_added INTEGER,
                         type TEXT,
-                        year INTEGER
+                        year INTEGER,
+                        cover_path TEXT
                     )",
                 )
                 .execute(&pool)
                 .await
                 .expect("Failed to create Videos table");
+
+                let columns = sqlx::query("PRAGMA table_info(Videos)")
+                    .fetch_all(&pool)
+                    .await
+                    .expect("Failed to read Videos schema");
+                let column_names: Vec<String> = columns
+                    .iter()
+                    .map(|row| row.get::<String, _>("name"))
+                    .collect();
+
+                let mut migrations: Vec<&str> = Vec::new();
+                if !column_names.iter().any(|name| name == "type") {
+                    migrations.push("ALTER TABLE Videos ADD COLUMN type TEXT");
+                }
+                if !column_names.iter().any(|name| name == "year") {
+                    migrations.push("ALTER TABLE Videos ADD COLUMN year INTEGER");
+                }
+                if !column_names.iter().any(|name| name == "cover_path") {
+                    migrations.push("ALTER TABLE Videos ADD COLUMN cover_path TEXT");
+                }
+
+                for statement in migrations {
+                    sqlx::query(statement)
+                        .execute(&pool)
+                        .await
+                        .expect("Failed to migrate Videos table");
+                }
 
                 pool
             });
