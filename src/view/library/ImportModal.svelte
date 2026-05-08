@@ -103,8 +103,8 @@
                 />
             </div>
 
-            <div class="field">
-                <label>Type</label>
+            <fieldset class="field fieldset">
+                <legend>Type</legend>
                 <div class="radio-group">
                     <label class="radio-opt">
                         <input
@@ -131,7 +131,7 @@
                         /> Other
                     </label>
                 </div>
-            </div>
+            </fieldset>
 
             <div class="field">
                 <label for="vyear">Year</label>
@@ -146,15 +146,25 @@
             </div>
 
             <div class="field">
-                <label>Cover image</label>
-                <button class="file-btn" onclick={getPathImage}>
+                <label for="vcover">Cover image</label>
+                <button
+                    id="vcover"
+                    type="button"
+                    class="file-btn"
+                    onclick={getPathImage}
+                >
                     {pathImage ? pathImage : "Select file..."}
                 </button>
             </div>
 
             <div class="field">
-                <label>File</label>
-                <button class="file-btn" onclick={getVideoMetadata}>
+                <label for="vfile">File</label>
+                <button
+                    id="vfile"
+                    type="button"
+                    class="file-btn"
+                    onclick={getVideoMetadata}
+                >
                     {videoData ? videoData.filename : "Select file..."}
                 </button>
             </div>
@@ -228,10 +238,17 @@
         gap: 5px;
     }
 
-    label {
+    label,
+    legend {
         font-size: 0.75rem;
         font-weight: 500;
         color: #555;
+    }
+
+    .fieldset {
+        border: 0;
+        padding: 0;
+        margin: 0;
     }
 
     input[type="text"],
