@@ -9,5 +9,8 @@ CREATE TABLE Videos (
     format TEXT,
     size_bytes INTEGER NOT NULL,
     duration_secs REAL NOT NULL,
-    date_added INTEGER
+    date_added INTEGER,
+    type TEXT,
+    year INTEGER,
+    cover_path TEXT
 )

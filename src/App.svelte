@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import Library from "./view/library/LibraryView.svelte";
     import UpscalingView from "./view/UpscalingView.svelte";
 
